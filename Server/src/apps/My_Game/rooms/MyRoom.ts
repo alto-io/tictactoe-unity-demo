@@ -27,9 +27,7 @@ export class MyRoom extends Room<MyRoomState> {
 
   private registerMessages(){
     this.onMessage("type", (client, message) => {
-      //
-      // handle "type" message
-      //
+      console.log("Hey I received it!");
     });
   }
 

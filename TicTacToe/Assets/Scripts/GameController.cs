@@ -112,9 +112,11 @@ public class GameController : MonoBehaviour
 
     void StartGame()
     {
-        SetBoardState(true);
-        SetPlayerButtons(false);
-        startInfo.SetActive(false);
+        if (ExampleManager.Instance.IsInRoom == true) {
+            SetBoardState(true);
+            SetPlayerButtons(false);
+            startInfo.SetActive(false);
+        }
     }
 
     public string GetPlayerSide()
