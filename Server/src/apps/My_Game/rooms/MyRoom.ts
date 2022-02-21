@@ -27,8 +27,47 @@ export class MyRoom extends Room<MyRoomState> {
 
   private registerMessages(){
     this.onMessage("type", (client, message) => {
-      console.log("Hey I received it!");
+      console.log("State", message);
     });
+
+    // this will be called on the game's awake function
+    this.onMessage("awake", (client, message) => {
+      this.state.assign({playerMove: true, numOfUsedButtons: 0});
+    })
+
+    // this will be called to move the enemy bot
+    this.onMessage("moveBot", (client, message) => {
+      this.moveBot(message);
+    })
+
+    this.onMessage("increaseUsedBtns", (client, message) => {
+      let numOfUsedButtons = this.state.numOfUsedButtons;
+      this.state.assign({numOfUsedButtons: numOfUsedButtons + 1});
+    })
+
+    this.onMessage("setPlayerMove", (client, message) => {
+      let newPlayerMove = this.state.playerMove ? false : true;
+      this.state.assign({playerMove: newPlayerMove});
+    })
+
+    this.onMessage("setSides", (client, message) => {
+
+      console.log(message);
+      if (message === "X") {
+        console.log("x side");
+        this.state.assign({playerSide: "X", computerSide: "O"});
+      } else {
+        console.log("o side");
+        this.state.assign({playerSide: "O", computerSide: "X"});
+      }
+    })
+
+    this.onMessage("restartGame", (client, message) => {
+      this.state.assign({
+        numOfUsedButtons: 0,
+        playerMove: true
+      })
+    })
   }
 
   //This is a stub required for OPArcade integration
@@ -56,4 +95,10 @@ export class MyRoom extends Room<MyRoomState> {
     console.log("room", this.roomId, "disposing...");
   }
 
+  // custom methods
+
+  // move bot
+  moveBot(msg: any) {
+    this.state.assign({ botChosenPos: msg});
+  }
 }

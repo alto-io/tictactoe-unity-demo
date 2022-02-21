@@ -6,6 +6,14 @@ using UnityEngine;
 
 public class ExampleManager : ColyseusManager<ExampleManager>
 {
+    // room states
+    private string playerSide;
+    private string computerSide;
+    private int numOfUsedButtons;
+    private bool playerMove;
+    private float delay;
+    private int botChosenPos;
+
     public delegate void OnRoomsReceived(ColyseusRoomAvailable[] rooms);
 
     public static OnRoomsReceived onRoomsReceived;
@@ -79,7 +87,7 @@ public class ExampleManager : ColyseusManager<ExampleManager>
         // and allow the app to run in the background for continuous testing.
         Application.targetFrameRate = 60;
         Application.runInBackground = true;
-        
+
         InitializeClient();
     }
 
@@ -92,7 +100,7 @@ public class ExampleManager : ColyseusManager<ExampleManager>
 
         isInitialized = true;
         // Set up room controller
-        _roomController = new ExampleRoomController {roomName = roomName};
+        _roomController = new ExampleRoomController { roomName = roomName };
         _roomController.SetRoomOptions(roomOptions);
         _roomController.SetDependencies(_colyseusSettings);
         // Set up Networked Entity Factory
@@ -191,76 +199,112 @@ public class ExampleManager : ColyseusManager<ExampleManager>
     }
 #endif
 
-#region Remote Function Call
-
-    /// <summary>
-    ///     Send a Remote Function Call
-    /// </summary>
-    /// <param name="entity">The entity we want to send the RFC</param>
-    /// <param name="function">The name of the function to call</param>
-    /// <param name="param">The parameters of the function to call</param>
-    /// <param name="target">Who should receive this RFC</param>
-    public static void RFC(ColyseusNetworkedEntityView entity, string function, object[] param,
-        ExampleRFCTargets target = ExampleRFCTargets.ALL)
+    // functions for tictactoe
+    public void TestSend()
     {
-        RFC(entity.Id, function, param, target);
+        _roomController.Room.Send("type", _roomController.Room.State.mySynchronizedProperty);
     }
 
-    /// <summary>
-    ///     Send a Remote Function Call
-    /// </summary>
-    /// <param name="entityId">The ID of the entity we want to send the RFC</param>
-    /// <param name="function">The name of the function to call</param>
-    /// <param name="param">The parameters of the function to call</param>
-    /// <param name="target">Who should receive this RFC</param>
-    public static void RFC(string entityId, string function, object[] param,
-        ExampleRFCTargets target = ExampleRFCTargets.ALL)
+    public void CallAwake()
     {
-        NetSend("remoteFunctionCall",
-            new ExampleRFCMessage {entityId = entityId, function = function, param = param, target = target});
+        _roomController.Room.Send("awake");
     }
 
-    public static void CustomServerMethod(string methodName, object[] param)
+    public void MoveBot(int chosenPos)
     {
-        NetSend("customMethod", new ExampleCustomMethodMessage {method = methodName, param = param});
+        _roomController.Room.Send("moveBot", chosenPos);
     }
 
-    /// <summary>
-    ///     Send an action and message object to the room.
-    /// </summary>
-    /// <param name="action">The action to take</param>
-    /// <param name="message">The message object to pass along to the room</param>
-    public static void NetSend(string action, object message = null)
+    public void IncreaseNumOfUsedButtons()
     {
-        if (Instance._roomController.Room == null)
+        _roomController.Room.Send("increaseUsedBtns");
+    }
+
+    public void SetPlayerMove()
+    {
+        _roomController.Room.Send("setPlayerMove");
+    }
+
+    public void SetSides(string playerSide)
+    {
+        _roomController.Room.Send("setSides", playerSide);
+    }
+
+    public void RestartGame()
+    {
+        _roomController.Room.Send("restartGame");
+    }
+
+    public bool GetPlayerMove()
+    {
+        return this.playerMove;
+    }
+
+    public float GetDelay()
+    {
+        return this.delay;
+    }
+
+    public string GetComputerSide()
+    {
+        return this.computerSide;
+    }
+
+    public string GetPlayerSide()
+    {
+        Debug.Log(this.playerSide);
+        return this.playerSide;
+    }
+
+    public int GetBotChosenPos()
+    {
+        return this.botChosenPos;
+    }
+
+    public int GetNumOfUsedButtons()
+    {
+        return this.numOfUsedButtons;
+    }
+
+    public void SeeStates()
+    {
+        Debug.Log(_roomController.Room.State.playerMove);
+    }
+
+
+    public void ListenToServerEvents()
+    {
+        _roomController.Room.State.OnChange += (changes) =>
         {
-            LSLog.LogError($"Error: Not in room for action {action} msg {message}");
-            return;
-        }
-
-        _ = message == null
-            ? Instance._roomController.Room.Send(action)
-            : Instance._roomController.Room.Send(action, message);
+            changes.ForEach((obj) =>
+            {
+                if (obj.Field == "playerSide")
+                {
+                    Debug.Log("playerside change");
+                    Debug.Log(obj.Value.ToString());
+                    this.playerSide = obj.Value.ToString();
+                }
+                else if (obj.Field == "computerSide")
+                {
+                    this.computerSide = obj.Value.ToString();
+                }
+                else if (obj.Field == "numOfUsedButtons")
+                {
+                    this.numOfUsedButtons = int.Parse(obj.Value.ToString());
+                }
+                else if (obj.Field == "playerMove")
+                {
+                    this.playerMove = (bool) obj.Value;
+                }
+                else if (obj.Field == "delay")
+                {
+                    this.delay = float.Parse(obj.Value.ToString());
+                }
+                else if (obj.Field == "botChosenPos")
+                {
+                    this.botChosenPos = int.Parse(obj.Value.ToString());
+                }
+            });
+        };
     }
-
-    /// <summary>
-    ///     Send an action and message object to the room.
-    /// </summary>
-    /// <param name="actionByte">The action to take</param>
-    /// <param name="message">The message object to pass along to the room</param>
-    public static void NetSend(byte actionByte, object message = null)
-    {
-        if (Instance._roomController.Room == null)
-        {
-            LSLog.LogError(
-                $"Error: Not in room for action bytes msg {(message != null ? message.ToString() : "No Message")}");
-            return;
-        }
-
-        _ = message == null
-            ? Instance._roomController.Room.Send(actionByte)
-            : Instance._roomController.Room.Send(actionByte, message);
-    }
-
-#endregion Networked Entity Creation
 }

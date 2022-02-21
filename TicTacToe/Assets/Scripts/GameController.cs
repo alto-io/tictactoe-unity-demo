@@ -23,11 +23,9 @@ public class PlayerColor
 public class GameController : MonoBehaviour
 {
     public Text[] buttonList;
-    private string playerSide;
-    private string computerSide;
     public GameObject gameOverPanel;
     public Text gameOverText;
-    private int isNotInteractable;
+    private int numOfUsedButtons;
     public GameObject restartButton;
 
     public Player playerX;
@@ -35,17 +33,15 @@ public class GameController : MonoBehaviour
     public PlayerColor activePlayerColor;
     public PlayerColor inactivePlayerColor;
     public GameObject startInfo;
-    public bool playerMove;
-    public float delay;
-    private int value;
+
+    private string playerSide;
+    private string computerSide;
 
     void Awake()
     {
         gameOverPanel.SetActive(false);
         restartButton.SetActive(false);
         SetGameControllerReferenceOnButtons();
-        isNotInteractable = 0;
-        playerMove = true;
     }
 
     private IEnumerator Start()
@@ -66,29 +62,37 @@ public class GameController : MonoBehaviour
         };
 
         ExampleManager.Instance.Initialize("my_room", roomOptions);
+
+        while (ExampleManager.Instance.IsInRoom == false)
+        {
+            yield return new WaitForEndOfFrame();
+        }
+
+        ExampleManager.Instance.ListenToServerEvents();
     }
 
     void Update()
     {
-        if (playerMove == false)
+        if (ExampleManager.Instance.GetPlayerMove() == false)
         {
-            delay += delay * Time.deltaTime;
-            if (delay >= 100)
+            Debug.Log("Player is false");
+            int botChosenPos = ExampleManager.Instance.GetBotChosenPos();
+
+            if (buttonList[botChosenPos].GetComponentInParent<Button>().interactable == true)
             {
-                value = Random.Range(0, 8);
-                if (buttonList[value].GetComponentInParent<Button>().interactable == true)
-                {
-                    buttonList[value].text = GetComputerSide();
-                    buttonList[value].GetComponentInParent<Button>().interactable = false;
-                    EndTurn();
-                }
+                buttonList[botChosenPos].text = ExampleManager.Instance.GetComputerSide();
+                buttonList[botChosenPos].GetComponentInParent<Button>().interactable = false;
+                EndTurn();
             }
+
+            ExampleManager.Instance.MoveBot(Random.Range(0, 8));
+
         }
     }
 
     void SetGameControllerReferenceOnButtons()
     {
-        for(int i = 0; i < buttonList.Length; i++)
+        for (int i = 0; i < buttonList.Length; i++)
         {
             buttonList[i].GetComponentInParent<GridSpace>().SetGameControllerReference(this);
         }
@@ -96,14 +100,14 @@ public class GameController : MonoBehaviour
 
     public void SetStartingSide(string startingSide)
     {
-        playerSide = startingSide;
-        if( playerSide == "X")
+        ExampleManager.Instance.SetSides(startingSide);
+
+        if (startingSide == "X")
         {
-            computerSide = "O";
             SetPlayerColors(playerX, playerO);
         }
-        else {
-            computerSide = "X";
+        else
+        {
             SetPlayerColors(playerO, playerX);
         }
 
@@ -112,28 +116,35 @@ public class GameController : MonoBehaviour
 
     void StartGame()
     {
-        if (ExampleManager.Instance.IsInRoom == true) {
+        if (ExampleManager.Instance.IsInRoom == true)
+        {
             SetBoardState(true);
             SetPlayerButtons(false);
             startInfo.SetActive(false);
+            ExampleManager.Instance.CallAwake();
+
+            this.playerSide = ExampleManager.Instance.GetPlayerSide();
+            this.computerSide = ExampleManager.Instance.GetComputerSide();
         }
     }
 
     public string GetPlayerSide()
     {
-        return playerSide;
+        return ExampleManager.Instance.GetPlayerSide();
     }
 
-     public string GetComputerSide()
+    public string GetComputerSide()
     {
-        return computerSide;
+        return ExampleManager.Instance.GetComputerSide();
     }
 
     public void EndTurn()
     {
-        isNotInteractable += 1;
+        // numOfUsedButtons += 1;
+        ExampleManager.Instance.IncreaseNumOfUsedButtons();
+        Debug.Log(playerSide);
 
-        if(
+        if (
             buttonList[0].text == playerSide &&
             buttonList[1].text == playerSide &&
             buttonList[2].text == playerSide
@@ -142,7 +153,7 @@ public class GameController : MonoBehaviour
             GameOver(playerSide);
         }
 
-        else if(
+        else if (
             buttonList[3].text == playerSide &&
             buttonList[4].text == playerSide &&
             buttonList[5].text == playerSide
@@ -151,7 +162,7 @@ public class GameController : MonoBehaviour
             GameOver(playerSide);
         }
 
-        else if(
+        else if (
             buttonList[6].text == playerSide &&
             buttonList[7].text == playerSide &&
             buttonList[8].text == playerSide
@@ -160,7 +171,7 @@ public class GameController : MonoBehaviour
             GameOver(playerSide);
         }
 
-        else if(
+        else if (
             buttonList[0].text == playerSide &&
             buttonList[3].text == playerSide &&
             buttonList[6].text == playerSide
@@ -169,7 +180,7 @@ public class GameController : MonoBehaviour
             GameOver(playerSide);
         }
 
-        else if(
+        else if (
             buttonList[1].text == playerSide &&
             buttonList[4].text == playerSide &&
             buttonList[7].text == playerSide
@@ -178,7 +189,7 @@ public class GameController : MonoBehaviour
             GameOver(playerSide);
         }
 
-        else if(
+        else if (
             buttonList[2].text == playerSide &&
             buttonList[5].text == playerSide &&
             buttonList[8].text == playerSide
@@ -187,7 +198,7 @@ public class GameController : MonoBehaviour
             GameOver(playerSide);
         }
 
-        else if(
+        else if (
             buttonList[0].text == playerSide &&
             buttonList[4].text == playerSide &&
             buttonList[8].text == playerSide
@@ -196,7 +207,7 @@ public class GameController : MonoBehaviour
             GameOver(playerSide);
         }
 
-        else if(
+        else if (
             buttonList[2].text == playerSide &&
             buttonList[4].text == playerSide &&
             buttonList[6].text == playerSide
@@ -207,7 +218,7 @@ public class GameController : MonoBehaviour
 
         //
 
-        else if(
+        else if (
             buttonList[0].text == computerSide &&
             buttonList[1].text == computerSide &&
             buttonList[2].text == computerSide
@@ -216,7 +227,7 @@ public class GameController : MonoBehaviour
             GameOver(computerSide);
         }
 
-        else if(
+        else if (
             buttonList[3].text == computerSide &&
             buttonList[4].text == computerSide &&
             buttonList[5].text == computerSide
@@ -225,7 +236,7 @@ public class GameController : MonoBehaviour
             GameOver(computerSide);
         }
 
-        else if(
+        else if (
             buttonList[6].text == computerSide &&
             buttonList[7].text == computerSide &&
             buttonList[8].text == computerSide
@@ -234,7 +245,7 @@ public class GameController : MonoBehaviour
             GameOver(computerSide);
         }
 
-        else if(
+        else if (
             buttonList[0].text == computerSide &&
             buttonList[3].text == computerSide &&
             buttonList[6].text == computerSide
@@ -243,7 +254,7 @@ public class GameController : MonoBehaviour
             GameOver(computerSide);
         }
 
-        else if(
+        else if (
             buttonList[1].text == computerSide &&
             buttonList[4].text == computerSide &&
             buttonList[7].text == computerSide
@@ -252,7 +263,7 @@ public class GameController : MonoBehaviour
             GameOver(computerSide);
         }
 
-        else if(
+        else if (
             buttonList[2].text == computerSide &&
             buttonList[5].text == computerSide &&
             buttonList[8].text == computerSide
@@ -261,7 +272,7 @@ public class GameController : MonoBehaviour
             GameOver(computerSide);
         }
 
-        else if(
+        else if (
             buttonList[0].text == computerSide &&
             buttonList[4].text == computerSide &&
             buttonList[8].text == computerSide
@@ -270,7 +281,7 @@ public class GameController : MonoBehaviour
             GameOver(computerSide);
         }
 
-        else if(
+        else if (
             buttonList[2].text == computerSide &&
             buttonList[4].text == computerSide &&
             buttonList[6].text == computerSide
@@ -279,7 +290,7 @@ public class GameController : MonoBehaviour
             GameOver(computerSide);
         }
 
-        else if (isNotInteractable >= 9)
+        else if (ExampleManager.Instance.GetNumOfUsedButtons() >= 9)
         {
             GameOver("draw");
         }
@@ -287,8 +298,7 @@ public class GameController : MonoBehaviour
         else
         {
             ChangeSides();
-            delay = 60;
-        } 
+        }
     }
 
     void SetPlayerColors(Player newPlayer, Player oldPlayer)
@@ -320,10 +330,11 @@ public class GameController : MonoBehaviour
     void ChangeSides()
     {
         // playerSide = (playerSide == "X") ? "O" : "X";
-        playerMove = (playerMove == true) ? false : true;
+        // playerMove = (playerMove == true) ? false : true;
+        ExampleManager.Instance.SetPlayerMove();
 
         // if (playerSide == "X")
-        if (playerMove == true)
+        if (ExampleManager.Instance.GetPlayerMove() == true)
         {
             SetPlayerColors(playerX, playerO);
         }
@@ -336,16 +347,15 @@ public class GameController : MonoBehaviour
     public void RestartGame()
     {
         ShowTurnIndicators(true);
-        isNotInteractable = 0;
         gameOverPanel.SetActive(false);
         restartButton.SetActive(false);
         SetPlayerButtons(true);
         SetPlayerColorsInactive();
         startInfo.SetActive(true);
-        playerMove = true;
-        delay = 60;
 
-        for (int i = 0; i < buttonList.Length; i++) 
+        ExampleManager.Instance.RestartGame();
+
+        for (int i = 0; i < buttonList.Length; i++)
         {
             buttonList[i].text = "";
         }
@@ -353,13 +363,13 @@ public class GameController : MonoBehaviour
 
     void SetBoardState(bool state)
     {
-        for (int i = 0; i < buttonList.Length; i++) 
+        for (int i = 0; i < buttonList.Length; i++)
         {
             buttonList[i].GetComponentInParent<Button>().interactable = state;
             if (state == true)
             {
                 buttonList[i].text = "";
-            } 
+            }
         }
     }
 
@@ -368,12 +378,13 @@ public class GameController : MonoBehaviour
         playerX.panel.enabled = state;
         playerO.panel.enabled = state;
 
-        if(!state)
+        if (!state)
         {
             playerX.text.text = "";
             playerO.text.text = "";
-        } 
-        else {
+        }
+        else
+        {
             playerX.text.text = "X";
             playerO.text.text = "O";
         }
