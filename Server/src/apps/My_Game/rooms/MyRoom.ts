@@ -30,9 +30,15 @@ export class MyRoom extends Room<MyRoomState> {
       console.log("State", message);
     });
 
-    // this will be called on the game's awake function
-    this.onMessage("awake", (client, message) => {
-      this.state.assign({playerMove: true, numOfUsedButtons: 0});
+    // this will be called on the game's start function
+    this.onMessage("start", (client, message) => {
+      // this.state.assign({playerMove: true, numOfUsedButtons: 0});
+      console.log("Game start");
+    })
+
+    // this will be called after the game ends, win, loose or draw with the score
+    this.onMessage("end", (client, message) => {
+      console.log("Game end: score -", message);
     })
 
     // this will be called to move the enemy bot
