@@ -23,9 +23,11 @@ public class PlayerColor
 public class GameController : MonoBehaviour
 {
     public Text[] buttonList;
+    private string playerSide;
+    private string computerSide;
     public GameObject gameOverPanel;
     public Text gameOverText;
-    private int numOfUsedButtons;
+    private int isNotInteractable;
     public GameObject restartButton;
 
     public Player playerX;
@@ -33,15 +35,29 @@ public class GameController : MonoBehaviour
     public PlayerColor activePlayerColor;
     public PlayerColor inactivePlayerColor;
     public GameObject startInfo;
+    public bool playerMove;
+    public float delay;
+    private int value;
 
-    private string playerSide;
-    private string computerSide;
+
+
+    // tournament params
+    private string playerId;
+    private string otp;
+    private string tourneyId;
+    private string wallet_address;
 
     void Awake()
     {
         gameOverPanel.SetActive(false);
         restartButton.SetActive(false);
         SetGameControllerReferenceOnButtons();
+        isNotInteractable = 0;
+        playerMove = true;
+
+        // PlayerPrefs.SetString("test", "Hi this is a test pref");
+
+        SetTourneyOptions();
     }
 
     private IEnumerator Start()
@@ -69,24 +85,25 @@ public class GameController : MonoBehaviour
         }
 
         ExampleManager.Instance.ListenToServerEvents();
+
+        ExampleManager.Instance.GameStart();
     }
 
     void Update()
     {
-        if (ExampleManager.Instance.GetPlayerMove() == false)
+        if (playerMove == false)
         {
-            Debug.Log("Player is false");
-            int botChosenPos = ExampleManager.Instance.GetBotChosenPos();
-
-            if (buttonList[botChosenPos].GetComponentInParent<Button>().interactable == true)
+            delay += delay * Time.deltaTime;
+            if (delay >= 100)
             {
-                buttonList[botChosenPos].text = ExampleManager.Instance.GetComputerSide();
-                buttonList[botChosenPos].GetComponentInParent<Button>().interactable = false;
-                EndTurn();
+                value = Random.Range(0, 8);
+                if (buttonList[value].GetComponentInParent<Button>().interactable == true)
+                {
+                    buttonList[value].text = GetComputerSide();
+                    buttonList[value].GetComponentInParent<Button>().interactable = false;
+                    EndTurn();
+                }
             }
-
-            ExampleManager.Instance.MoveBot(Random.Range(0, 8));
-
         }
     }
 
@@ -100,14 +117,15 @@ public class GameController : MonoBehaviour
 
     public void SetStartingSide(string startingSide)
     {
-        ExampleManager.Instance.SetSides(startingSide);
-
-        if (startingSide == "X")
+        playerSide = startingSide;
+        if (playerSide == "X")
         {
+            computerSide = "O";
             SetPlayerColors(playerX, playerO);
         }
         else
         {
+            computerSide = "X";
             SetPlayerColors(playerO, playerX);
         }
 
@@ -121,28 +139,22 @@ public class GameController : MonoBehaviour
             SetBoardState(true);
             SetPlayerButtons(false);
             startInfo.SetActive(false);
-            ExampleManager.Instance.CallAwake();
-
-            this.playerSide = ExampleManager.Instance.GetPlayerSide();
-            this.computerSide = ExampleManager.Instance.GetComputerSide();
         }
     }
 
     public string GetPlayerSide()
     {
-        return ExampleManager.Instance.GetPlayerSide();
+        return playerSide;
     }
 
     public string GetComputerSide()
     {
-        return ExampleManager.Instance.GetComputerSide();
+        return computerSide;
     }
 
     public void EndTurn()
     {
-        // numOfUsedButtons += 1;
-        ExampleManager.Instance.IncreaseNumOfUsedButtons();
-        Debug.Log(playerSide);
+        isNotInteractable += 1;
 
         if (
             buttonList[0].text == playerSide &&
@@ -290,7 +302,7 @@ public class GameController : MonoBehaviour
             GameOver(computerSide);
         }
 
-        else if (ExampleManager.Instance.GetNumOfUsedButtons() >= 9)
+        else if (isNotInteractable >= 9)
         {
             GameOver("draw");
         }
@@ -298,6 +310,7 @@ public class GameController : MonoBehaviour
         else
         {
             ChangeSides();
+            delay = 60;
         }
     }
 
@@ -325,16 +338,20 @@ public class GameController : MonoBehaviour
             gameOverText.text = winner + " Wins!";
             SetBoardState(false);
         }
+
+        if (ExampleManager.Instance.IsInRoom == true)
+        {
+            ExampleManager.Instance.GameEnd(100);
+        }
     }
 
     void ChangeSides()
     {
         // playerSide = (playerSide == "X") ? "O" : "X";
-        // playerMove = (playerMove == true) ? false : true;
-        ExampleManager.Instance.SetPlayerMove();
+        playerMove = (playerMove == true) ? false : true;
 
         // if (playerSide == "X")
-        if (ExampleManager.Instance.GetPlayerMove() == true)
+        if (playerMove == true)
         {
             SetPlayerColors(playerX, playerO);
         }
@@ -347,13 +364,14 @@ public class GameController : MonoBehaviour
     public void RestartGame()
     {
         ShowTurnIndicators(true);
+        isNotInteractable = 0;
         gameOverPanel.SetActive(false);
         restartButton.SetActive(false);
         SetPlayerButtons(true);
         SetPlayerColorsInactive();
         startInfo.SetActive(true);
-
-        ExampleManager.Instance.RestartGame();
+        playerMove = true;
+        delay = 60;
 
         for (int i = 0; i < buttonList.Length; i++)
         {
@@ -402,5 +420,46 @@ public class GameController : MonoBehaviour
         playerX.text.color = inactivePlayerColor.textColor;
         playerO.panel.color = inactivePlayerColor.panelColor;
         playerO.text.color = inactivePlayerColor.textColor;
+    }
+
+    void SetTourneyOptions()
+    {
+        try
+        {
+            string launchParams = Application.absoluteURL.Split("?"[0])[1];
+            string[] parameters = launchParams.Split(char.Parse("&"));
+            foreach (string param in parameters)
+            {
+                string[] temp = param.Split('=');
+
+                if (temp[0].Equals("playerid"))
+                {
+                    playerId = temp[1];
+                }
+                else if (temp[0].Equals("otp"))
+                {
+                    otp = temp[1];
+                }
+                else if (temp[0].Equals("tourneyid"))
+                {
+                    tourneyId = temp[1];
+                }
+                else if (temp[0].Equals("wallet_address"))
+                {
+                    wallet_address = temp[1];
+                }
+            }
+
+            PlayerPrefs.SetString("playerID", playerId);
+            PlayerPrefs.SetString("otp", otp);
+            PlayerPrefs.SetString("tourneyId", tourneyId);
+            PlayerPrefs.SetString("wallet_address", wallet_address);
+            Debug.Log(PlayerPrefs.GetString("playerID"));
+            Debug.Log(PlayerPrefs.GetString("otp"));
+        }
+        catch
+        {
+            Debug.Log("Not in tourney");
+        }
     }
 }

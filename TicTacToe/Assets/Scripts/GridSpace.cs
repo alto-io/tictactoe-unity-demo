@@ -12,7 +12,7 @@ public class GridSpace : MonoBehaviour
 
    public void SetSpace()
    {
-       if(ExampleManager.Instance.GetPlayerMove() == true)
+       if(gameController.playerMove == true)
        {
             buttonText.text = gameController.GetPlayerSide();
             button.interactable = false;

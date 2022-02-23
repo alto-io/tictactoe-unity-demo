@@ -205,9 +205,15 @@ public class ExampleManager : ColyseusManager<ExampleManager>
         _roomController.Room.Send("type", _roomController.Room.State.mySynchronizedProperty);
     }
 
-    public void CallAwake()
+    public void GameStart()
     {
-        _roomController.Room.Send("awake");
+        _roomController.Room.Send("start");
+    }
+
+    public void GameEnd(int score)
+    {
+        Debug.Log(PlayerPrefs.GetString("playerID"));
+        _roomController.Room.Send("end", score);
     }
 
     public void MoveBot(int chosenPos)

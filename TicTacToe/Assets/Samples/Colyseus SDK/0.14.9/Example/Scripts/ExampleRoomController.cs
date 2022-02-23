@@ -165,6 +165,7 @@ public class ExampleRoomController
 
         try
         {
+            Debug.Log("Create specific room");
             //Populate an options dictionary with custom options provided elsewhere as well as the critical option we need here, roomId
             Dictionary<string, object> options = new Dictionary<string, object> {["roomId"] = roomId};
             foreach (KeyValuePair<string, object> option in roomOptionsDictionary)
