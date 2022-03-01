@@ -77,7 +77,7 @@ public class GameController : MonoBehaviour
             ["finalScore"] = "100"
         };
 
-        ExampleManager.Instance.Initialize("my_room", roomOptions);
+        ExampleManager.Instance.Initialize("TictactoeRoom", roomOptions);
 
         while (ExampleManager.Instance.IsInRoom == false)
         {
