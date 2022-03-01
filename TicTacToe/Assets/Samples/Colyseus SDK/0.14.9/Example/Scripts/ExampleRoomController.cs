@@ -59,7 +59,7 @@ public class ExampleRoomController
     /// <summary>
     ///     The current or active Room we get when joining or creating a room.
     /// </summary>
-    private ColyseusRoom<MyRoomState> _room;
+    private ColyseusRoom<TictactoeRoomState> _room;
 
     /// <summary>
     ///     The time as received from the server in milliseconds.
@@ -107,7 +107,7 @@ public class ExampleRoomController
         get { return _lastPong - _lastPing; }
     }
 
-    public ColyseusRoom<MyRoomState> Room
+    public ColyseusRoom<TictactoeRoomState> Room
     {
         get { return _room; }
     }
@@ -173,7 +173,7 @@ public class ExampleRoomController
                 options.Add(option.Key, option.Value);
             }
 
-            _room = await client.Create<MyRoomState>(roomName, options);
+            _room = await client.Create<TictactoeRoomState>(roomName, options);
         }
         catch (Exception ex)
         {
@@ -206,7 +206,7 @@ public class ExampleRoomController
                 options.Add(option.Key, option.Value);
             }
 
-            _room = await _client.JoinOrCreate<MyRoomState>(roomName, options);
+            _room = await _client.JoinOrCreate<TictactoeRoomState>(roomName, options);
 
             Debug.Log("Room initialized");
             Debug.Log(_room);
@@ -344,7 +344,7 @@ public class ExampleRoomController
         {
             while (_room == null || !_room.colyseusConnection.IsOpen)
             {
-                _room = await _client.JoinById<MyRoomState>(roomId, null);
+                _room = await _client.JoinById<TictactoeRoomState>(roomId, null);
 
                 if (_room == null || !_room.colyseusConnection.IsOpen)
                 {
@@ -389,7 +389,7 @@ public class ExampleRoomController
     /// </summary>
     /// <param name="state">The room state.</param>
     /// <param name="isFirstState">Is it the first state?</param>
-    private static void OnStateChangeHandler(MyRoomState state, bool isFirstState)
+    private static void OnStateChangeHandler(TictactoeRoomState state, bool isFirstState)
     {
         // Setup room first state
         //LSLog.LogImportant("State has been updated!");
@@ -401,7 +401,7 @@ public class ExampleRoomController
     /// <param name="roomToPing">The <see cref="ColyseusRoom{T}" /> to ping.</param>
     private void RunPingThread(object roomToPing)
     {
-        ColyseusRoom<MyRoomState> currentRoom = (ColyseusRoom<MyRoomState>) roomToPing;
+        ColyseusRoom<TictactoeRoomState> currentRoom = (ColyseusRoom<TictactoeRoomState>) roomToPing;
 
         const float pingInterval = 0.5f; // seconds
         const float pingTimeout = 15f; //seconds

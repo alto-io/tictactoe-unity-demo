@@ -7,7 +7,7 @@
 
 using Colyseus.Schema;
 
-public partial class MyRoomState : Schema {
+public partial class TictactoeRoomState : Schema {
 	[Type(0, "string")]
 	public string mySynchronizedProperty = default(string);
 

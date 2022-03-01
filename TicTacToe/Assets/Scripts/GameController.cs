@@ -87,6 +87,9 @@ public class GameController : MonoBehaviour
         ExampleManager.Instance.ListenToServerEvents();
 
         ExampleManager.Instance.GameStart();
+
+        // call validate from server
+        ExampleManager.Instance.CallValidate();
     }
 
     void Update()
@@ -424,8 +427,10 @@ public class GameController : MonoBehaviour
 
     void SetTourneyOptions()
     {
+        PlayerPrefs.SetString("testotp", "hi im otp");
         try
         {
+            // get required creds from arcadia
             string launchParams = Application.absoluteURL.Split("?"[0])[1];
             string[] parameters = launchParams.Split(char.Parse("&"));
             foreach (string param in parameters)
@@ -450,12 +455,10 @@ public class GameController : MonoBehaviour
                 }
             }
 
-            PlayerPrefs.SetString("playerID", playerId);
+            PlayerPrefs.SetString("playerId", playerId);
             PlayerPrefs.SetString("otp", otp);
             PlayerPrefs.SetString("tourneyId", tourneyId);
             PlayerPrefs.SetString("wallet_address", wallet_address);
-            Debug.Log(PlayerPrefs.GetString("playerID"));
-            Debug.Log(PlayerPrefs.GetString("otp"));
         }
         catch
         {

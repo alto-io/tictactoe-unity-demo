@@ -216,6 +216,21 @@ public class ExampleManager : ColyseusManager<ExampleManager>
         _roomController.Room.Send("end", score);
     }
 
+    public void CallValidate()
+    {
+        string otp = PlayerPrefs.GetString("otp");
+        string playerId = PlayerPrefs.GetString("playerId");
+        string tourneyId = PlayerPrefs.GetString("tourneyId");
+
+        var validateOptions = new {
+            otp = otp,
+            playerId = playerId,
+            tourneyId = tourneyId
+        };
+
+        _roomController.Room.Send("validate", validateOptions);
+    }
+
     public void MoveBot(int chosenPos)
     {
         _roomController.Room.Send("moveBot", chosenPos);

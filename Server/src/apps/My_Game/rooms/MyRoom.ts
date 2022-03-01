@@ -41,6 +41,11 @@ export class MyRoom extends Room<MyRoomState> {
       console.log("Game end: score -", message);
     })
 
+    // this will be called before the game starts.
+    this.onMessage("validate", (client, message) => {
+      console.log(message);
+    })
+
     // this will be called to move the enemy bot
     this.onMessage("moveBot", (client, message) => {
       this.moveBot(message);
