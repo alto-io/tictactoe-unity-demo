@@ -89,7 +89,7 @@ public class GameController : MonoBehaviour
         ExampleManager.Instance.GameStart();
 
         // call validate from server
-        ExampleManager.Instance.CallValidate();
+        // ExampleManager.Instance.CallValidate();
     }
 
     void Update()
@@ -344,7 +344,7 @@ public class GameController : MonoBehaviour
 
         if (ExampleManager.Instance.IsInRoom == true)
         {
-            ExampleManager.Instance.GameEnd(100);
+            ExampleManager.Instance.GameEnd(isNotInteractable);
         }
     }
 

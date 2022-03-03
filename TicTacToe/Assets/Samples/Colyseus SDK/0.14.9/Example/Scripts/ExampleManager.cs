@@ -212,7 +212,6 @@ public class ExampleManager : ColyseusManager<ExampleManager>
 
     public void GameEnd(int score)
     {
-        Debug.Log(PlayerPrefs.GetString("playerID"));
         _roomController.Room.Send("end", score);
     }
 
